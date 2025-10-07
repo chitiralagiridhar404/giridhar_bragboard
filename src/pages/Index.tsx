@@ -1,11 +1,34 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="text-center space-y-6 p-8">
+        <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+          Welcome to Your App
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-2xl">
+          Secure authentication system with role-based access and department management
+        </p>
+        <div className="flex gap-4 justify-center pt-4">
+          <Button
+            onClick={() => navigate("/auth")}
+            className="bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity"
+            size="lg"
+          >
+            Get Started
+          </Button>
+          <Button
+            onClick={() => navigate("/auth")}
+            variant="outline"
+            size="lg"
+          >
+            Sign In
+          </Button>
+        </div>
       </div>
     </div>
   );
