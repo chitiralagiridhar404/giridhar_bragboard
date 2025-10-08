@@ -98,7 +98,7 @@ const Dashboard = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            Dashboard
+            BragBoard Dashboard
           </h1>
           <Button onClick={handleLogout} variant="outline">
             Logout

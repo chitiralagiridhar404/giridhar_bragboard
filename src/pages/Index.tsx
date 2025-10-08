@@ -8,10 +8,10 @@ const Index = () => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
       <div className="text-center space-y-6 p-8">
         <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-          Welcome to Your App
+          Welcome to BragBoard
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl">
-          Secure authentication system with role-based access and department management
+          Share your achievements and celebrate your wins
         </p>
         <div className="flex gap-4 justify-center pt-4">
           <Button

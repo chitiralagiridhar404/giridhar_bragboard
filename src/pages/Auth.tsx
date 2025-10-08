@@ -99,10 +99,10 @@ const Auth = () => {
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-2">
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            {isLogin ? "Welcome Back" : "Create Account"}
+            {isLogin ? "Welcome Back to BragBoard" : "Join BragBoard"}
           </CardTitle>
           <CardDescription>
-            {isLogin ? "Sign in to access your dashboard" : "Sign up to get started"}
+            {isLogin ? "Sign in to share your achievements" : "Sign up to start celebrating your wins"}
           </CardDescription>
         </CardHeader>
         <CardContent>
