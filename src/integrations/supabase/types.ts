@@ -80,6 +80,62 @@ export type Database = {
         }
         Relationships: []
       }
+      shout_out_recipients: {
+        Row: {
+          created_at: string
+          id: string
+          recipient_id: string
+          shout_out_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipient_id: string
+          shout_out_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipient_id?: string
+          shout_out_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shout_out_recipients_shout_out_id_fkey"
+            columns: ["shout_out_id"]
+            isOneToOne: false
+            referencedRelation: "shout_outs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shout_outs: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

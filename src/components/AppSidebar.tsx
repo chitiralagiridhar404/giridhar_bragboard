@@ -1,4 +1,4 @@
-import { User, Settings, Home, Award, Target } from "lucide-react";
+import { User, Settings, Home, Award, Target, MessageSquareHeart } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -28,6 +28,7 @@ interface AppSidebarProps {
 
 const menuItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },
+  { title: "Shout-outs", url: "/shout-outs", icon: MessageSquareHeart },
   { title: "Achievements", url: "/achievements", icon: Award },
   { title: "Goals", url: "/goals", icon: Target },
   { title: "Settings", url: "/settings", icon: Settings },
