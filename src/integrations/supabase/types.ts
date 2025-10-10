@@ -101,6 +101,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "shout_out_recipients_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "shout_out_recipients_shout_out_id_fkey"
             columns: ["shout_out_id"]
             isOneToOne: false
@@ -134,7 +141,15 @@ export type Database = {
           sender_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "shout_outs_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {
