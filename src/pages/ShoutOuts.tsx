@@ -31,16 +31,12 @@ interface ShoutOut {
     full_name: string | null;
     role: string;
   }[];
-  reactions: {
+  reactions?: {
     like: number;
     clap: number;
     star: number;
   };
-  userReactions: {
-    like: boolean;
-    clap: boolean;
-    star: boolean;
-  };
+  userReactions?: string[];
 }
 
 const ShoutOuts = () => {
@@ -88,7 +84,7 @@ const ShoutOuts = () => {
       if (shoutOutsError) throw shoutOutsError;
 
       // Fetch recipients and reactions for each shout-out
-      const shoutOutsWithDetails = await Promise.all(
+      const shoutOutsWithData = await Promise.all(
         (shoutOutsData || []).map(async (shoutOut) => {
           // Fetch recipients
           const { data: recipients } = await supabase
@@ -111,12 +107,10 @@ const ShoutOuts = () => {
             star: allReactions?.filter(r => r.reaction_type === 'star').length || 0,
           };
 
-          // Check if current user has reacted
-          const userReactions = {
-            like: user ? allReactions?.some(r => r.user_id === user.id && r.reaction_type === 'like') || false : false,
-            clap: user ? allReactions?.some(r => r.user_id === user.id && r.reaction_type === 'clap') || false : false,
-            star: user ? allReactions?.some(r => r.user_id === user.id && r.reaction_type === 'star') || false : false,
-          };
+          // Get current user's reactions
+          const userReactions = user
+            ? allReactions?.filter(r => r.user_id === user.id).map(r => r.reaction_type) || []
+            : [];
 
           return {
             ...shoutOut,
@@ -130,7 +124,7 @@ const ShoutOuts = () => {
         })
       );
 
-      setShoutOuts(shoutOutsWithDetails);
+      setShoutOuts(shoutOutsWithData);
     } catch (error: any) {
       toast({
         title: "Error loading shout-outs",
