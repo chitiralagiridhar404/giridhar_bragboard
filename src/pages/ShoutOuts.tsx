@@ -31,6 +31,16 @@ interface ShoutOut {
     full_name: string | null;
     role: string;
   }[];
+  reactions: {
+    like: number;
+    clap: number;
+    star: number;
+  };
+  userReactions: {
+    like: boolean;
+    clap: boolean;
+    star: boolean;
+  };
 }
 
 const ShoutOuts = () => {
@@ -61,6 +71,8 @@ const ShoutOuts = () => {
 
   const fetchShoutOuts = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       // Fetch shout-outs with sender profiles
       const { data: shoutOutsData, error: shoutOutsError } = await supabase
         .from("shout_outs")
@@ -75,9 +87,10 @@ const ShoutOuts = () => {
 
       if (shoutOutsError) throw shoutOutsError;
 
-      // Fetch recipients for each shout-out
-      const shoutOutsWithRecipients = await Promise.all(
+      // Fetch recipients and reactions for each shout-out
+      const shoutOutsWithDetails = await Promise.all(
         (shoutOutsData || []).map(async (shoutOut) => {
+          // Fetch recipients
           const { data: recipients } = await supabase
             .from("shout_out_recipients")
             .select(`
@@ -85,17 +98,39 @@ const ShoutOuts = () => {
             `)
             .eq("shout_out_id", shoutOut.id);
 
+          // Fetch all reactions for this shout-out
+          const { data: allReactions } = await supabase
+            .from("shout_out_reactions")
+            .select("reaction_type, user_id")
+            .eq("shout_out_id", shoutOut.id);
+
+          // Count reactions by type
+          const reactionCounts = {
+            like: allReactions?.filter(r => r.reaction_type === 'like').length || 0,
+            clap: allReactions?.filter(r => r.reaction_type === 'clap').length || 0,
+            star: allReactions?.filter(r => r.reaction_type === 'star').length || 0,
+          };
+
+          // Check if current user has reacted
+          const userReactions = {
+            like: user ? allReactions?.some(r => r.user_id === user.id && r.reaction_type === 'like') || false : false,
+            clap: user ? allReactions?.some(r => r.user_id === user.id && r.reaction_type === 'clap') || false : false,
+            star: user ? allReactions?.some(r => r.user_id === user.id && r.reaction_type === 'star') || false : false,
+          };
+
           return {
             ...shoutOut,
             sender: Array.isArray(shoutOut.sender) ? shoutOut.sender[0] : shoutOut.sender,
             recipients: (recipients || []).map((r: any) => 
               Array.isArray(r.recipient) ? r.recipient[0] : r.recipient
             ),
+            reactions: reactionCounts,
+            userReactions,
           };
         })
       );
 
-      setShoutOuts(shoutOutsWithRecipients);
+      setShoutOuts(shoutOutsWithDetails);
     } catch (error: any) {
       toast({
         title: "Error loading shout-outs",

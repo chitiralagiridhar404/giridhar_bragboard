@@ -80,6 +80,45 @@ export type Database = {
         }
         Relationships: []
       }
+      shout_out_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          reaction_type: string
+          shout_out_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reaction_type: string
+          shout_out_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reaction_type?: string
+          shout_out_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shout_out_reactions_shout_out_id_fkey"
+            columns: ["shout_out_id"]
+            isOneToOne: false
+            referencedRelation: "shout_outs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shout_out_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       shout_out_recipients: {
         Row: {
           created_at: string
