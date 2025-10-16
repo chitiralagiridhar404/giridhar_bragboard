@@ -10,14 +10,23 @@ export interface Reactions {
   star: number;
 }
 
-export const useReactions = (shoutOutId: string, userId?: string) => {
-  const [reactions, setReactions] = useState<Reactions>({ like: 0, clap: 0, star: 0 });
-  const [userReactions, setUserReactions] = useState<ReactionType[]>([]);
+export const useReactions = (
+  shoutOutId: string, 
+  userId?: string,
+  initialReactions?: Reactions,
+  initialUserReactions?: ReactionType[]
+) => {
+  const [reactions, setReactions] = useState<Reactions>(
+    initialReactions || { like: 0, clap: 0, star: 0 }
+  );
+  const [userReactions, setUserReactions] = useState<ReactionType[]>(
+    initialUserReactions || []
+  );
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (userId) {
+    if (userId && !initialReactions) {
       fetchReactions();
     }
   }, [shoutOutId, userId]);
