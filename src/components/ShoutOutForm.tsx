@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X, UserPlus } from "lucide-react";
+import { Upload, X, UserPlus, Sparkles, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Command,
@@ -19,6 +19,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface Profile {
   user_id: string;
@@ -34,6 +42,7 @@ export const ShoutOutForm = ({ onSuccess }: { onSuccess: () => void }) => {
   const [taggedUsers, setTaggedUsers] = useState<Profile[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [open, setOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -147,6 +156,7 @@ export const ShoutOutForm = ({ onSuccess }: { onSuccess: () => void }) => {
       setImage(null);
       setImagePreview(null);
       setTaggedUsers([]);
+      setDialogOpen(false);
       onSuccess();
     } catch (error: any) {
       toast({
@@ -160,120 +170,184 @@ export const ShoutOutForm = ({ onSuccess }: { onSuccess: () => void }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-card p-6 rounded-lg border">
-      <div>
-        <Label htmlFor="content">Share a Shout-out</Label>
-        <Textarea
-          id="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Give recognition to someone who made a difference..."
-          className="mt-2 min-h-[100px]"
-        />
-      </div>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogTrigger asChild>
+        <Button 
+          size="lg" 
+          className="w-full relative overflow-hidden group bg-gradient-to-r from-primary to-primary-glow hover:shadow-[var(--shadow-elegant)] transition-all duration-300"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+          <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
+          Create Amazing Shout-out
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-2xl">
+            <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+            Share Recognition
+          </DialogTitle>
+          <DialogDescription>
+            Celebrate someone's amazing work and make their day special ✨
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-3">
+            <Label htmlFor="content" className="text-base font-semibold flex items-center gap-2">
+              Your Message
+              <span className="text-xs text-muted-foreground font-normal">(Share what made them special)</span>
+            </Label>
+            <Textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write something heartfelt... Tell them why they're awesome, what they did that impressed you, or how they made a difference! 🌟"
+              className="min-h-[140px] resize-none text-base border-2 focus:border-primary transition-colors"
+            />
+          </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                if (profiles.length === 0) fetchProfiles();
-              }}
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Tag People
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[300px] p-0">
-            <Command>
-              <CommandInput placeholder="Search people..." />
-              <CommandList>
-                <CommandEmpty>No one found.</CommandEmpty>
-                <CommandGroup>
-                  {profiles.map((profile) => (
-                    <CommandItem
-                      key={profile.user_id}
-                      onSelect={() => toggleUser(profile)}
+          <div className="space-y-4">
+            <Label className="text-base font-semibold">Add Details</Label>
+            <div className="flex flex-wrap gap-3">
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    className="border-2 hover:border-primary hover:bg-primary/5 transition-all"
+                    onClick={() => {
+                      if (profiles.length === 0) fetchProfiles();
+                    }}
+                  >
+                    <UserPlus className="mr-2 h-5 w-5" />
+                    Tag People
+                    {taggedUsers.length > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {taggedUsers.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[340px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search people..." className="h-12" />
+                    <CommandList>
+                      <CommandEmpty>No one found.</CommandEmpty>
+                      <CommandGroup>
+                        {profiles.map((profile) => (
+                          <CommandItem
+                            key={profile.user_id}
+                            onSelect={() => toggleUser(profile)}
+                            className="py-3"
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <div>
+                                <div className="font-medium">{profile.full_name || "Unknown"}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {profile.role} • {profile.department}
+                                </div>
+                              </div>
+                              {taggedUsers.find((u) => u.user_id === profile.user_id) && (
+                                <div className="text-primary text-xl">✓</div>
+                              )}
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+
+              <div className="relative">
+                <input
+                  type="file"
+                  id="image-upload"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="border-2 hover:border-primary hover:bg-primary/5 transition-all"
+                  onClick={() => document.getElementById("image-upload")?.click()}
+                >
+                  <ImageIcon className="mr-2 h-5 w-5" />
+                  Add Image
+                  {imagePreview && (
+                    <Badge variant="secondary" className="ml-2">✓</Badge>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {taggedUsers.length > 0 && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <Label className="text-sm font-semibold text-muted-foreground">Tagged People</Label>
+              <div className="flex flex-wrap gap-2">
+                {taggedUsers.map((user) => (
+                  <Badge 
+                    key={user.user_id} 
+                    variant="secondary" 
+                    className="gap-2 py-2 px-3 text-sm hover:bg-secondary/80 transition-colors"
+                  >
+                    {user.full_name || "Unknown"}
+                    <button
+                      type="button"
+                      onClick={() => toggleUser(user)}
+                      className="hover:text-destructive transition-colors"
                     >
-                      <div className="flex items-center justify-between w-full">
-                        <div>
-                          <div className="font-medium">{profile.full_name || "Unknown"}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {profile.role} • {profile.department}
-                          </div>
-                        </div>
-                        {taggedUsers.find((u) => u.user_id === profile.user_id) && (
-                          <span className="text-primary">✓</span>
-                        )}
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+                      <X className="h-4 w-4" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
 
-        <div className="relative">
-          <input
-            type="file"
-            id="image-upload"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => document.getElementById("image-upload")?.click()}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            Upload Image
-          </Button>
-        </div>
-      </div>
-
-      {taggedUsers.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {taggedUsers.map((user) => (
-            <Badge key={user.user_id} variant="secondary" className="gap-1">
-              {user.full_name || "Unknown"}
+          {imagePreview && (
+            <div className="relative w-full h-64 rounded-lg overflow-hidden border-2 border-primary/20 animate-in fade-in zoom-in-95 duration-300">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
               <button
                 type="button"
-                onClick={() => toggleUser(user)}
-                className="ml-1 hover:text-destructive"
+                onClick={removeImage}
+                className="absolute top-3 right-3 bg-destructive text-destructive-foreground rounded-full p-2 hover:bg-destructive/90 transition-all shadow-lg hover:scale-110"
               >
-                <X className="h-3 w-3" />
+                <X className="h-5 w-5" />
               </button>
-            </Badge>
-          ))}
-        </div>
-      )}
+            </div>
+          )}
 
-      {imagePreview && (
-        <div className="relative w-full h-48 rounded-lg overflow-hidden border">
-          <img
-            src={imagePreview}
-            alt="Preview"
-            className="w-full h-full object-cover"
-          />
-          <button
-            type="button"
-            onClick={removeImage}
-            className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+          <Button 
+            type="submit" 
+            disabled={loading} 
+            size="lg"
+            className="w-full text-lg h-12 bg-gradient-to-r from-primary to-primary-glow hover:shadow-[var(--shadow-elegant)] transition-all duration-300 relative overflow-hidden group"
           >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Posting..." : "Post Shout-out"}
-      </Button>
-    </form>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                Posting...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-5 w-5" />
+                Share the Love
+              </>
+            )}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };

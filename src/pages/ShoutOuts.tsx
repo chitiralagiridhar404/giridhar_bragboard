@@ -209,7 +209,12 @@ const ShoutOuts = () => {
             </div>
           </div>
 
-          <ShoutOutForm onSuccess={fetchShoutOuts} />
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary-glow/5 to-primary/5 rounded-xl blur-xl" />
+            <div className="relative">
+              <ShoutOutForm onSuccess={fetchShoutOuts} />
+            </div>
+          </div>
 
           <div className="bg-card p-4 rounded-lg border space-y-4">
             <div className="flex items-center gap-2">
