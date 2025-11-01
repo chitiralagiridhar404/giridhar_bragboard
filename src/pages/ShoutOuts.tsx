@@ -21,6 +21,7 @@ interface ShoutOut {
   content: string;
   image_url: string | null;
   created_at: string;
+  sender_id: string;
   sender: {
     full_name: string | null;
     role: string;
@@ -77,6 +78,7 @@ const ShoutOuts = () => {
           content,
           image_url,
           created_at,
+          sender_id,
           sender:profiles!shout_outs_sender_id_fkey(full_name, role, department, avatar_url)
         `)
         .order("created_at", { ascending: false });
@@ -295,7 +297,11 @@ const ShoutOuts = () => {
             ) : (
               <div className="space-y-6">
                 {filteredShoutOuts.map((shoutOut) => (
-                  <ShoutOutCard key={shoutOut.id} shoutOut={shoutOut} />
+                  <ShoutOutCard 
+                    key={shoutOut.id} 
+                    shoutOut={shoutOut} 
+                    onUpdate={fetchShoutOuts}
+                  />
                 ))}
               </div>
             )}
