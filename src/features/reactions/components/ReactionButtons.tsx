@@ -25,39 +25,35 @@ export const ReactionButtons = ({ shoutOutId, userId, reactions: initialReaction
     type: ReactionType;
     emoji: string;
     label: string;
-    colorClass: string;
-    bgClass: string;
-    hoverClass: string;
+    gradient: string;
+    shadowClass: string;
   }> = [
     { 
       type: 'like', 
       emoji: '❤️', 
       label: 'Love',
-      colorClass: 'text-red-500',
-      bgClass: 'bg-red-50 dark:bg-red-950',
-      hoverClass: 'hover:bg-red-100 dark:hover:bg-red-900'
+      gradient: 'from-red-500 to-pink-500',
+      shadowClass: 'shadow-[0_0_20px_rgba(239,68,68,0.5)]'
     },
     { 
       type: 'clap', 
       emoji: '👏', 
       label: 'Applause',
-      colorClass: 'text-yellow-500',
-      bgClass: 'bg-yellow-50 dark:bg-yellow-950',
-      hoverClass: 'hover:bg-yellow-100 dark:hover:bg-yellow-900'
+      gradient: 'from-yellow-400 to-orange-500',
+      shadowClass: 'shadow-[0_0_20px_rgba(251,191,36,0.5)]'
     },
     { 
       type: 'star', 
       emoji: '⭐', 
       label: 'Star',
-      colorClass: 'text-amber-500',
-      bgClass: 'bg-amber-50 dark:bg-amber-950',
-      hoverClass: 'hover:bg-amber-100 dark:hover:bg-amber-900'
+      gradient: 'from-amber-400 to-yellow-300',
+      shadowClass: 'shadow-[0_0_20px_rgba(245,158,11,0.5)]'
     },
   ];
 
   return (
-    <div className="flex gap-2 flex-wrap">
-      {reactionConfig.map(({ type, emoji, label, colorClass, bgClass, hoverClass }) => {
+    <div className="flex gap-3 flex-wrap">
+      {reactionConfig.map(({ type, emoji, label, gradient, shadowClass }) => {
         const isActive = userReactions.includes(type);
         const count = reactions[type];
 
@@ -69,20 +65,23 @@ export const ReactionButtons = ({ shoutOutId, userId, reactions: initialReaction
             onClick={() => handleReaction(type)}
             disabled={isLoading}
             className={cn(
-              "gap-2 min-w-[70px] border-2 transition-all duration-300 font-semibold",
+              "gap-2 min-w-[80px] border-2 transition-all duration-300 font-bold rounded-full",
               isActive 
-                ? `${bgClass} ${colorClass} border-current scale-105 shadow-md` 
-                : `${hoverClass} border-muted-foreground/20 hover:border-current hover:scale-105`,
+                ? `bg-gradient-to-r ${gradient} text-white border-transparent scale-110 ${shadowClass}` 
+                : "bg-background/50 backdrop-blur-sm border-primary/30 hover:border-primary hover:scale-105 hover:shadow-md",
             )}
             title={label}
           >
-            <span className="text-lg leading-none animate-in zoom-in duration-200">
+            <span className={cn(
+              "text-xl leading-none transition-transform duration-200",
+              isActive && "animate-bounce"
+            )}>
               {emoji}
             </span>
             {count > 0 && (
               <span className={cn(
-                "text-sm font-bold",
-                isActive ? colorClass : "text-foreground"
+                "text-base font-bold",
+                isActive ? "text-white" : "text-foreground"
               )}>
                 {count}
               </span>

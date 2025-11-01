@@ -200,26 +200,33 @@ const ShoutOuts = () => {
   return (
     <SidebarProvider>
       <AppSidebar profile={profile} userEmail={userEmail} />
-      <main className="flex-1 overflow-auto">
-        <div className="container mx-auto p-6 space-y-6">
+      <main className="flex-1 overflow-auto bg-gradient-mesh">
+        <div className="container mx-auto p-6 space-y-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <SidebarTrigger />
-              <h1 className="text-3xl font-bold">Shout-outs</h1>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-rainbow bg-clip-text text-transparent">
+                  Shout-outs
+                </h1>
+                <p className="text-muted-foreground mt-1">Celebrate achievements and spread positivity</p>
+              </div>
             </div>
           </div>
 
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary-glow/5 to-primary/5 rounded-xl blur-xl" />
-            <div className="relative">
+            <div className="absolute inset-0 bg-gradient-primary rounded-2xl blur-2xl opacity-20" />
+            <div className="relative bg-card/80 backdrop-blur-xl rounded-2xl p-1 shadow-glow">
               <ShoutOutForm onSuccess={fetchShoutOuts} />
             </div>
           </div>
 
-          <div className="bg-card p-4 rounded-lg border space-y-4">
-            <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              <h2 className="font-semibold">Filters</h2>
+          <div className="relative bg-card/60 backdrop-blur-lg p-6 rounded-2xl border-2 border-primary/20 shadow-elegant space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gradient-accent">
+                <Filter className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="font-bold text-lg">Filter Your Feed</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -227,10 +234,11 @@ const ShoutOuts = () => {
                 placeholder="Search by sender..."
                 value={searchSender}
                 onChange={(e) => setSearchSender(e.target.value)}
+                className="border-primary/30 focus:border-primary bg-background/50"
               />
 
               <Select value={filterDepartment} onValueChange={setFilterDepartment}>
-                <SelectTrigger>
+                <SelectTrigger className="border-primary/30 focus:border-primary bg-background/50">
                   <SelectValue placeholder="All Departments" />
                 </SelectTrigger>
                 <SelectContent>
@@ -245,7 +253,7 @@ const ShoutOuts = () => {
               </Select>
 
               <Select value={filterDate} onValueChange={setFilterDate}>
-                <SelectTrigger>
+                <SelectTrigger className="border-primary/30 focus:border-primary bg-background/50">
                   <SelectValue placeholder="All Time" />
                 </SelectTrigger>
                 <SelectContent>
@@ -256,25 +264,36 @@ const ShoutOuts = () => {
                 </SelectContent>
               </Select>
 
-              <Button variant="outline" onClick={resetFilters}>
+              <Button 
+                variant="outline" 
+                onClick={resetFilters}
+                className="border-2 border-secondary/50 hover:bg-gradient-secondary hover:text-white hover:border-secondary"
+              >
                 Reset Filters
               </Button>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">
-              Feed ({filteredShoutOuts.length} shout-outs)
-            </h2>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                Feed ({filteredShoutOuts.length} shout-outs)
+              </h2>
+            </div>
             
             {loading ? (
-              <p className="text-center text-muted-foreground py-8">Loading shout-outs...</p>
+              <div className="text-center py-12">
+                <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                <p className="text-muted-foreground mt-4">Loading shout-outs...</p>
+              </div>
             ) : filteredShoutOuts.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No shout-outs found. Be the first to share some recognition!
-              </p>
+              <div className="text-center py-12 bg-card/60 backdrop-blur-lg rounded-2xl border-2 border-dashed border-primary/30">
+                <p className="text-muted-foreground text-lg">
+                  No shout-outs found. Be the first to share some recognition! 🎉
+                </p>
+              </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {filteredShoutOuts.map((shoutOut) => (
                   <ShoutOutCard key={shoutOut.id} shoutOut={shoutOut} />
                 ))}
