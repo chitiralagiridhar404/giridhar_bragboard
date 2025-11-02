@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowRight, Edit2, Trash2, MoreVertical } from "lucide-react";
 import { CommentSection } from "./CommentSection";
 import { EditShoutOutDialog } from "./EditShoutOutDialog";
+import { ReportShoutOutDialog } from "./ReportShoutOutDialog";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -56,6 +58,7 @@ export const ShoutOutCard = ({ shoutOut, onUpdate }: { shoutOut: ShoutOut; onUpd
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { isAdmin } = useUserRole();
 
   useEffect(() => {
     const getUser = async () => {
@@ -70,6 +73,7 @@ export const ShoutOutCard = ({ shoutOut, onUpdate }: { shoutOut: ShoutOut; onUpd
     (shoutOut.reactions?.star || 0);
 
   const isOwner = userId === shoutOut.sender_id;
+  const canModerate = isAdmin || isOwner;
 
   const handleDelete = async () => {
     try {
@@ -148,7 +152,7 @@ export const ShoutOutCard = ({ shoutOut, onUpdate }: { shoutOut: ShoutOut; onUpd
                   </div>
                 </div>
 
-                {isOwner && (
+                {canModerate && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -177,6 +181,7 @@ export const ShoutOutCard = ({ shoutOut, onUpdate }: { shoutOut: ShoutOut; onUpd
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
+                {!isOwner && <ReportShoutOutDialog shoutOutId={shoutOut.id} />}
               </div>
             </div>
           </div>

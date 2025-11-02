@@ -1,5 +1,6 @@
-import { User, Settings, Home, Award, Target, MessageSquareHeart } from "lucide-react";
+import { User, Settings, Home, Award, Target, MessageSquareHeart, Shield } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole";
 import {
   Sidebar,
   SidebarContent,
@@ -37,6 +38,7 @@ const menuItems = [
 export function AppSidebar({ profile, userEmail }: AppSidebarProps) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const { isAdmin } = useUserRole();
 
   const getInitials = () => {
     if (profile?.full_name) {
@@ -115,6 +117,23 @@ export function AppSidebar({ profile, userEmail }: AppSidebarProps) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/admin"
+                      className={({ isActive }) =>
+                        isActive
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "hover:bg-muted/50"
+                      }
+                    >
+                      <Shield className="h-4 w-4" />
+                      {!isCollapsed && <span>Admin Dashboard</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
