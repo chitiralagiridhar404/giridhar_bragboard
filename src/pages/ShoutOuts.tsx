@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AdminButton } from "@/components/AdminButton";
 import { useToast } from "@/hooks/use-toast";
 import { Filter } from "lucide-react";
 
@@ -214,6 +215,7 @@ const ShoutOuts = () => {
                 <p className="text-muted-foreground mt-1">Celebrate achievements and spread positivity</p>
               </div>
             </div>
+            <AdminButton />
           </div>
 
           <div className="relative">

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AdminButton } from "@/components/AdminButton";
 
 interface Profile {
   id: string;
@@ -143,6 +144,7 @@ const Dashboard = () => {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent flex-1">
                 BragBoard
               </h1>
+              <AdminButton />
               <Button onClick={handleLogout} variant="outline">
                 Logout
               </Button>
