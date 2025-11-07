@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import ShoutOuts from "./pages/ShoutOuts";
 import Admin from "./pages/Admin";
+import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/achievements" element={<Dashboard />} />
           <Route path="/goals" element={<Dashboard />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/profile/:userId" element={<UserProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

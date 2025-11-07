@@ -9,6 +9,11 @@ import { User, Session } from "@supabase/supabase-js";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AdminButton } from "@/components/AdminButton";
+import { NotificationBell } from "@/components/NotificationBell";
+import { SearchBar } from "@/components/SearchBar";
+import { StatsCards } from "@/components/StatsCards";
+import { TrendingSection } from "@/components/TrendingSection";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface Profile {
   id: string;
@@ -144,6 +149,9 @@ const Dashboard = () => {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent flex-1">
                 BragBoard
               </h1>
+              <SearchBar />
+              <ThemeToggle />
+              <NotificationBell userId={user?.id} />
               <AdminButton />
               <Button onClick={handleLogout} variant="outline">
                 Logout
@@ -165,21 +173,39 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Articles Section */}
-              <div>
-                <h3 className="text-xl font-semibold mb-4">Latest Updates</h3>
-                <div className="grid gap-6 md:grid-cols-3">
-                  {articles.map((article) => (
-                    <Card key={article.id} className="shadow-lg hover:shadow-xl transition-shadow hover-scale">
-                      <CardHeader>
-                        <div className="w-full h-32 bg-gradient-to-br from-primary/20 to-primary/5 rounded-md mb-4 flex items-center justify-center">
-                          <span className="text-4xl">🎯</span>
-                        </div>
-                        <CardTitle>{article.title}</CardTitle>
-                        <CardDescription>{article.description}</CardDescription>
-                      </CardHeader>
+              <StatsCards userId={user?.id} />
+
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Articles Section */}
+                <div className="lg:col-span-2 space-y-6">
+                  <h3 className="text-xl font-semibold">Latest Updates</h3>
+                  {articles.length === 0 ? (
+                    <Card>
+                      <CardContent className="p-12 text-center">
+                        <p className="text-muted-foreground">No featured content available at the moment.</p>
+                      </CardContent>
                     </Card>
-                  ))}
+                  ) : (
+                    <div className="grid gap-6">
+                      {articles.map((article) => (
+                        <Card key={article.id} className="shadow-lg hover:shadow-xl transition-shadow hover-scale">
+                          <CardHeader>
+                            <div className="w-full h-32 bg-gradient-to-br from-primary/20 to-primary/5 rounded-md mb-4 flex items-center justify-center">
+                              <span className="text-4xl">🎯</span>
+                            </div>
+                            <CardTitle>{article.title}</CardTitle>
+                            <CardDescription>{article.description}</CardDescription>
+                          </CardHeader>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Trending Section */}
+                <div className="lg:col-span-1">
+                  <TrendingSection />
                 </div>
               </div>
 

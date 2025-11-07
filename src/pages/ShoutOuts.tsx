@@ -14,6 +14,9 @@ import {
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AdminButton } from "@/components/AdminButton";
+import { NotificationBell } from "@/components/NotificationBell";
+import { SearchBar } from "@/components/SearchBar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { Filter } from "lucide-react";
 
@@ -215,7 +218,12 @@ const ShoutOuts = () => {
                 <p className="text-muted-foreground mt-1">Celebrate achievements and spread positivity</p>
               </div>
             </div>
-            <AdminButton />
+            <div className="flex items-center gap-2">
+              <SearchBar />
+              <ThemeToggle />
+              <NotificationBell userId={profile?.user_id} />
+              <AdminButton />
+            </div>
           </div>
 
           <div className="relative">

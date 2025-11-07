@@ -44,6 +44,27 @@ export type Database = {
         }
         Relationships: []
       }
+      bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          shout_out_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          shout_out_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          shout_out_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -78,6 +99,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -265,6 +319,27 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      user_achievements: {
+        Row: {
+          achievement_type: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_type: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_type?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

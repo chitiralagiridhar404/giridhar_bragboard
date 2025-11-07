@@ -10,8 +10,10 @@ import { ArrowRight, Edit2, Trash2, MoreVertical } from "lucide-react";
 import { CommentSection } from "./CommentSection";
 import { EditShoutOutDialog } from "./EditShoutOutDialog";
 import { ReportShoutOutDialog } from "./ReportShoutOutDialog";
+import { BookmarkButton } from "./BookmarkButton";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +61,7 @@ export const ShoutOutCard = ({ shoutOut, onUpdate }: { shoutOut: ShoutOut; onUpd
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getUser = async () => {
@@ -107,9 +110,9 @@ export const ShoutOutCard = ({ shoutOut, onUpdate }: { shoutOut: ShoutOut; onUpd
         
         <CardHeader className="space-y-4 relative">
           <div className="flex items-start gap-4">
-            <div className="relative">
+            <div className="relative cursor-pointer" onClick={() => navigate(`/profile/${shoutOut.sender_id}`)}>
               <div className="absolute inset-0 bg-gradient-primary rounded-full blur-md opacity-50"></div>
-              <Avatar className="h-16 w-16 border-3 border-white shadow-lg relative">
+              <Avatar className="h-16 w-16 border-3 border-white shadow-lg relative hover:scale-110 transition-transform">
                 <AvatarImage src={shoutOut.sender.avatar_url || undefined} />
                 <AvatarFallback className="bg-gradient-primary text-white font-bold text-xl">
                   {shoutOut.sender.full_name?.[0]?.toUpperCase() || "U"}
@@ -204,12 +207,15 @@ export const ShoutOutCard = ({ shoutOut, onUpdate }: { shoutOut: ShoutOut; onUpd
 
         <div className="pt-5 space-y-4">
           <div className="flex items-center justify-between border-t-2 border-gradient-primary pt-4">
-            <ReactionButtons 
-              shoutOutId={shoutOut.id} 
-              userId={userId}
-              reactions={shoutOut.reactions}
-              userReactions={(shoutOut.userReactions || []) as ('like' | 'clap' | 'star')[]}
-            />
+            <div className="flex items-center gap-3">
+              <ReactionButtons 
+                shoutOutId={shoutOut.id} 
+                userId={userId}
+                reactions={shoutOut.reactions}
+                userReactions={(shoutOut.userReactions || []) as ('like' | 'clap' | 'star')[]}
+              />
+              <BookmarkButton shoutOutId={shoutOut.id} userId={userId} />
+            </div>
             
             {totalReactions > 0 && (
               <div className="flex items-center gap-2 px-4 py-2 bg-gradient-accent rounded-full shadow-accent">
