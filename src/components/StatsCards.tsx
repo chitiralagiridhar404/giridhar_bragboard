@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Heart, MessageCircle, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { motion } from "framer-motion";
+import { AnimatedCounter } from "./AnimatedCounter";
 
 interface Stats {
   totalShoutOuts: number;
@@ -11,110 +13,64 @@ interface Stats {
 }
 
 export const StatsCards = ({ userId }: { userId?: string }) => {
-  const [stats, setStats] = useState<Stats>({
-    totalShoutOuts: 0,
-    totalReactions: 0,
-    totalComments: 0,
-    receivedShoutOuts: 0,
-  });
+  const [stats, setStats] = useState<Stats>({ totalShoutOuts: 0, totalReactions: 0, totalComments: 0, receivedShoutOuts: 0 });
 
   useEffect(() => {
-    if (userId) {
-      fetchStats();
-    }
+    if (userId) fetchStats();
   }, [userId]);
 
   const fetchStats = async () => {
-    // Sent shout-outs
-    const { count: sentCount } = await supabase
-      .from('shout_outs')
-      .select('*', { count: 'exact', head: true })
-      .eq('sender_id', userId);
-
-    // Received shout-outs
-    const { count: receivedCount } = await supabase
-      .from('shout_out_recipients')
-      .select('*', { count: 'exact', head: true })
-      .eq('recipient_id', userId);
-
-    // Reactions given
-    const { count: reactionsCount } = await supabase
-      .from('shout_out_reactions')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    // Comments made
-    const { count: commentsCount } = await supabase
-      .from('comments')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
+    const [sent, received, reactions, comments] = await Promise.all([
+      supabase.from('shout_outs').select('*', { count: 'exact', head: true }).eq('sender_id', userId),
+      supabase.from('shout_out_recipients').select('*', { count: 'exact', head: true }).eq('recipient_id', userId),
+      supabase.from('shout_out_reactions').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+      supabase.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+    ]);
     setStats({
-      totalShoutOuts: sentCount || 0,
-      totalReactions: reactionsCount || 0,
-      totalComments: commentsCount || 0,
-      receivedShoutOuts: receivedCount || 0,
+      totalShoutOuts: sent.count || 0,
+      totalReactions: reactions.count || 0,
+      totalComments: comments.count || 0,
+      receivedShoutOuts: received.count || 0,
     });
   };
 
   const cards = [
-    {
-      title: "Shout-outs Sent",
-      value: stats.totalShoutOuts,
-      icon: TrendingUp,
-      gradient: "from-blue-500 to-cyan-500",
-      bgGradient: "from-blue-500/10 to-cyan-500/10",
-    },
-    {
-      title: "Received",
-      value: stats.receivedShoutOuts,
-      icon: Award,
-      gradient: "from-purple-500 to-pink-500",
-      bgGradient: "from-purple-500/10 to-pink-500/10",
-    },
-    {
-      title: "Reactions Given",
-      value: stats.totalReactions,
-      icon: Heart,
-      gradient: "from-red-500 to-orange-500",
-      bgGradient: "from-red-500/10 to-orange-500/10",
-    },
-    {
-      title: "Comments",
-      value: stats.totalComments,
-      icon: MessageCircle,
-      gradient: "from-green-500 to-emerald-500",
-      bgGradient: "from-green-500/10 to-emerald-500/10",
-    },
+    { title: "Sent", value: stats.totalShoutOuts, icon: TrendingUp, gradient: "from-primary to-primary-glow" },
+    { title: "Received", value: stats.receivedShoutOuts, icon: Award, gradient: "from-secondary to-destructive" },
+    { title: "Reactions", value: stats.totalReactions, icon: Heart, gradient: "from-warning to-secondary" },
+    { title: "Comments", value: stats.totalComments, icon: MessageCircle, gradient: "from-accent to-success" },
   ];
 
   if (!userId) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {cards.map((card) => {
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {cards.map((card, i) => {
         const Icon = card.icon;
         return (
-          <Card
+          <motion.div
             key={card.title}
-            className={`bg-gradient-to-br ${card.bgGradient} border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.08 }}
           >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    {card.title}
-                  </p>
-                  <p className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                    {card.value}
-                  </p>
+            <Card className="glass-card border-0 rounded-2xl hover-lift overflow-hidden group">
+              <div className={`h-1 bg-gradient-to-r ${card.gradient} group-hover:h-1.5 transition-all`} />
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{card.title}</p>
+                    <p className="text-3xl font-extrabold">
+                      <AnimatedCounter end={card.value} />
+                    </p>
+                  </div>
+                  <div className={`p-2.5 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg`}>
+                    <Icon className="h-5 w-5 text-primary-foreground" />
+                  </div>
                 </div>
-                <div className={`p-3 rounded-full bg-gradient-to-r ${card.gradient}`}>
-                  <Icon className="h-6 w-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         );
       })}
     </div>

@@ -4,26 +4,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Shield, TrendingUp, Trophy, AlertTriangle } from 'lucide-react';
+import { Shield, TrendingUp, Trophy, AlertTriangle } from 'lucide-react';
 import { TopContributors } from '@/components/admin/TopContributors';
 import { MostTagged } from '@/components/admin/MostTagged';
 import { ReportedShoutOuts } from '@/components/admin/ReportedShoutOuts';
 import { Leaderboard } from '@/components/admin/Leaderboard';
 import { ExportReports } from '@/components/admin/ExportReports';
+import { motion } from 'framer-motion';
+import { PageTransition, StaggerContainer, StaggerItem } from '@/components/PageTransition';
+import { AnimatedCounter } from '@/components/AnimatedCounter';
 
 const Admin = () => {
   const navigate = useNavigate();
   const { isAdmin, loading } = useUserRole();
-  const [stats, setStats] = useState({
-    totalShoutOuts: 0,
-    totalUsers: 0,
-    pendingReports: 0,
-  });
+  const [stats, setStats] = useState({ totalShoutOuts: 0, totalUsers: 0, pendingReports: 0 });
 
   useEffect(() => {
-    if (!loading && !isAdmin) {
-      navigate('/shout-outs');
-    }
+    if (!loading && !isAdmin) navigate('/shout-outs');
   }, [isAdmin, loading, navigate]);
 
   useEffect(() => {
@@ -33,102 +30,86 @@ const Admin = () => {
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
-
       setStats({
         totalShoutOuts: shoutOuts.count || 0,
         totalUsers: users.count || 0,
         pendingReports: reports.count || 0,
       });
     };
-
-    if (isAdmin) {
-      fetchStats();
-    }
+    if (isAdmin) fetchStats();
   }, [isAdmin]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-mesh">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (!isAdmin) {
-    return null;
-  }
+  if (!isAdmin) return null;
+
+  const statCards = [
+    { title: "Total Shout-outs", value: stats.totalShoutOuts, gradient: "from-primary to-primary-glow", icon: "🎉" },
+    { title: "Total Users", value: stats.totalUsers, gradient: "from-accent to-success", icon: "👥" },
+    { title: "Pending Reports", value: stats.pendingReports, gradient: "from-destructive to-secondary", icon: "⚠️" },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-mesh p-6">
+    <PageTransition className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Shield className="h-10 w-10 text-primary" />
-          <h1 className="text-4xl font-bold bg-gradient-rainbow bg-clip-text text-transparent">
-            Admin Dashboard
-          </h1>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center gap-4"
+        >
+          <div className="p-3 rounded-2xl bg-gradient-primary shadow-elegant">
+            <Shield className="h-8 w-8 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-extrabold text-gradient-rainbow">Admin Dashboard</h1>
+            <p className="text-sm text-muted-foreground">Manage and monitor your BragBoard community</p>
+          </div>
+        </motion.div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-card/80 backdrop-blur-xl border-2 border-primary/20 shadow-glow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Shout-outs
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                {stats.totalShoutOuts}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/80 backdrop-blur-xl border-2 border-secondary/20 shadow-glow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Users
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold bg-gradient-secondary bg-clip-text text-transparent">
-                {stats.totalUsers}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/80 backdrop-blur-xl border-2 border-destructive/20 shadow-glow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Pending Reports
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-destructive">
-                {stats.pendingReports}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {statCards.map((card) => (
+            <StaggerItem key={card.title}>
+              <Card className="glass-card border-0 rounded-2xl hover-lift overflow-hidden">
+                <div className={`h-1 bg-gradient-to-r ${card.gradient}`} />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <span className="text-lg">{card.icon}</span>
+                    {card.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-4xl font-extrabold bg-gradient-to-r ${card.gradient} bg-clip-text text-transparent`}>
+                    <AnimatedCounter end={card.value} />
+                  </div>
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          ))}
+        </StaggerContainer>
 
         {/* Tabs */}
         <Tabs defaultValue="analytics" className="space-y-4">
-          <TabsList className="bg-card/60 backdrop-blur-lg border-2 border-primary/20 shadow-elegant">
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-primary">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Analytics
+          <TabsList className="glass-card border-0 rounded-xl h-12 p-1">
+            <TabsTrigger value="analytics" className="rounded-lg data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground gap-2 font-semibold">
+              <TrendingUp className="h-4 w-4" /> Analytics
             </TabsTrigger>
-            <TabsTrigger value="reports" className="data-[state=active]:bg-gradient-accent">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Reports
+            <TabsTrigger value="reports" className="rounded-lg data-[state=active]:bg-gradient-secondary data-[state=active]:text-secondary-foreground gap-2 font-semibold">
+              <AlertTriangle className="h-4 w-4" /> Reports
             </TabsTrigger>
-            <TabsTrigger value="leaderboard" className="data-[state=active]:bg-gradient-success">
-              <Trophy className="h-4 w-4 mr-2" />
-              Leaderboard
+            <TabsTrigger value="leaderboard" className="rounded-lg data-[state=active]:bg-gradient-success data-[state=active]:text-success-foreground gap-2 font-semibold">
+              <Trophy className="h-4 w-4" /> Leaderboard
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="analytics" className="space-y-4">
+          <TabsContent value="analytics" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <TopContributors />
               <MostTagged />
@@ -145,7 +126,7 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </PageTransition>
   );
 };
 

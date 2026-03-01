@@ -8,6 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { z } from "zod";
+import { motion } from "framer-motion";
+import { FloatingParticles } from "@/components/FloatingParticles";
+import { Sparkles, Eye, EyeOff, Mail, Lock, User, Building, Briefcase } from "lucide-react";
 
 const authSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -20,6 +23,7 @@ const authSchema = z.object({
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -30,171 +34,192 @@ const Auth = () => {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/dashboard");
-      }
+      if (session) navigate("/dashboard");
     };
     checkUser();
   }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     try {
       const validatedData = authSchema.parse({
-        email,
-        password,
+        email, password,
         fullName: isLogin ? undefined : fullName,
         role: isLogin ? undefined : role,
         department: isLogin ? undefined : department,
       });
-
       setLoading(true);
 
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
-          email: validatedData.email,
-          password: validatedData.password,
+          email: validatedData.email, password: validatedData.password,
         });
-
-        if (error) {
-          toast.error(error.message);
-        } else {
-          toast.success("Login successful!");
-          navigate("/dashboard");
-        }
+        if (error) toast.error(error.message);
+        else { toast.success("Welcome back! 🎉"); navigate("/dashboard"); }
       } else {
         const { error } = await supabase.auth.signUp({
-          email: validatedData.email,
-          password: validatedData.password,
+          email: validatedData.email, password: validatedData.password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: validatedData.fullName,
-              role: validatedData.role,
-              department: validatedData.department,
-            },
+            data: { full_name: validatedData.fullName, role: validatedData.role, department: validatedData.department },
           },
         });
-
-        if (error) {
-          toast.error(error.message);
-        } else {
-          toast.success("Account created! Please log in.");
-          setIsLogin(true);
-        }
+        if (error) toast.error(error.message);
+        else { toast.success("Account created! Please log in."); setIsLogin(true); }
       }
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message);
-      } else {
-        toast.error("An error occurred. Please try again.");
-      }
+      if (error instanceof z.ZodError) toast.error(error.errors[0].message);
+      else toast.error("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            {isLogin ? "Welcome Back to BragBoard" : "Join BragBoard"}
-          </CardTitle>
-          <CardDescription>
-            {isLogin ? "Sign in to share your achievements" : "Sign up to start celebrating your wins"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
-            {!isLogin && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4">
+      <FloatingParticles />
+      <div className="absolute top-20 left-20 w-72 h-72 bg-primary/15 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-20 right-20 w-96 h-96 bg-secondary/15 rounded-full blur-3xl animate-float-delayed" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md relative z-10"
+      >
+        <Card className="glass-strong rounded-3xl border-primary/20 shadow-elegant overflow-hidden">
+          {/* Decorative top bar */}
+          <div className="h-2 bg-gradient-rainbow w-full" />
+
+          <CardHeader className="space-y-3 pb-2 pt-8">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className="mx-auto p-4 rounded-2xl bg-gradient-primary shadow-elegant"
+            >
+              <Sparkles className="h-8 w-8 text-primary-foreground" />
+            </motion.div>
+            <CardTitle className="text-3xl font-extrabold text-center text-gradient-primary">
+              {isLogin ? "Welcome Back" : "Join BragBoard"}
+            </CardTitle>
+            <CardDescription className="text-center text-base">
+              {isLogin ? "Sign in to celebrate your team" : "Start your recognition journey"}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="px-8 pb-8">
+            <form onSubmit={handleAuth} className="space-y-4">
+              {!isLogin && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-primary" /> Full Name
+                    </Label>
+                    <Input
+                      id="fullName" placeholder="John Doe" value={fullName}
+                      onChange={(e) => setFullName(e.target.value)} required={!isLogin}
+                      className="rounded-xl border-2 focus:border-primary h-12"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-primary" /> Role
+                      </Label>
+                      <Select value={role} onValueChange={setRole}>
+                        <SelectTrigger className="rounded-xl border-2 h-12"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="employee">Employee</SelectItem>
+                          <SelectItem value="manager">Manager</SelectItem>
+                          <SelectItem value="team_lead">Team Lead</SelectItem>
+                          <SelectItem value="hr">HR</SelectItem>
+                          <SelectItem value="learner">Learner</SelectItem>
+                          <SelectItem value="fresher">Fresher</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-primary" /> Department
+                      </Label>
+                      <Select value={department} onValueChange={setDepartment}>
+                        <SelectTrigger className="rounded-xl border-2 h-12"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="general">General</SelectItem>
+                          <SelectItem value="engineering">Engineering</SelectItem>
+                          <SelectItem value="human_resources">Human Resources</SelectItem>
+                          <SelectItem value="marketing">Marketing</SelectItem>
+                          <SelectItem value="sales">Sales</SelectItem>
+                          <SelectItem value="operations">Operations</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-primary" /> Email
+                </Label>
+                <Input
+                  id="email" type="email" placeholder="you@example.com" value={email}
+                  onChange={(e) => setEmail(e.target.value)} required
+                  className="rounded-xl border-2 focus:border-primary h-12"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-primary" /> Password
+                </Label>
+                <div className="relative">
                   <Input
-                    id="fullName"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required={!isLogin}
+                    id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password}
+                    onChange={(e) => setPassword(e.target.value)} required
+                    className="rounded-xl border-2 focus:border-primary h-12 pr-12"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="employee">Employee</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="team_lead">Team Lead</SelectItem>
-                      <SelectItem value="hr">HR</SelectItem>
-                      <SelectItem value="learner">Learner</SelectItem>
-                      <SelectItem value="fresher">Fresher</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="department">Department</Label>
-                  <Select value={department} onValueChange={setDepartment}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="general">General</SelectItem>
-                      <SelectItem value="engineering">Engineering</SelectItem>
-                      <SelectItem value="human_resources">Human Resources</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="sales">Sales</SelectItem>
-                      <SelectItem value="operations">Operations</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              </div>
+
+              <Button
+                type="submit" disabled={loading}
+                className="w-full h-12 text-lg rounded-xl bg-gradient-primary hover:shadow-elegant transition-all duration-300 relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    Processing...
+                  </div>
+                ) : isLogin ? "Sign In" : "Create Account"}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-primary hover:text-primary-glow font-semibold transition-colors"
+              >
+                {isLogin ? "Need an account? Sign up →" : "Already have an account? Sign in →"}
+              </button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity"
-              disabled={loading}
-            >
-              {loading ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:underline"
-            >
-              {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 };

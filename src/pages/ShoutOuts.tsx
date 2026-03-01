@@ -4,13 +4,7 @@ import { ShoutOutForm } from "@/components/ShoutOutForm";
 import { ShoutOutCard } from "@/components/ShoutOutCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AdminButton } from "@/components/AdminButton";
@@ -18,7 +12,9 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { SearchBar } from "@/components/SearchBar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
-import { Filter } from "lucide-react";
+import { Filter, Sparkles, RotateCcw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { PageTransition } from "@/components/PageTransition";
 
 interface ShoutOut {
   id: string;
@@ -26,21 +22,9 @@ interface ShoutOut {
   image_url: string | null;
   created_at: string;
   sender_id: string;
-  sender: {
-    full_name: string | null;
-    role: string;
-    department: string;
-    avatar_url: string | null;
-  };
-  recipients: {
-    full_name: string | null;
-    role: string;
-  }[];
-  reactions?: {
-    like: number;
-    clap: number;
-    star: number;
-  };
+  sender: { full_name: string | null; role: string; department: string; avatar_url: string | null; };
+  recipients: { full_name: string | null; role: string; }[];
+  reactions?: { like: number; clap: number; star: number; };
   userReactions?: string[];
 }
 
@@ -59,11 +43,7 @@ const ShoutOuts = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserEmail(user.email || null);
-        const { data } = await supabase
-          .from("profiles")
-          .select("full_name, role, avatar_url")
-          .eq("user_id", user.id)
-          .single();
+        const { data } = await supabase.from("profiles").select("full_name, role, avatar_url").eq("user_id", user.id).single();
         setProfile(data);
       }
     };
@@ -73,70 +53,44 @@ const ShoutOuts = () => {
   const fetchShoutOuts = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      // Fetch shout-outs with sender profiles
-      const { data: shoutOutsData, error: shoutOutsError } = await supabase
+      const { data: shoutOutsData, error } = await supabase
         .from("shout_outs")
-        .select(`
-          id,
-          content,
-          image_url,
-          created_at,
-          sender_id,
-          sender:profiles!shout_outs_sender_id_fkey(full_name, role, department, avatar_url)
-        `)
+        .select(`id, content, image_url, created_at, sender_id, sender:profiles!shout_outs_sender_id_fkey(full_name, role, department, avatar_url)`)
         .order("created_at", { ascending: false });
 
-      if (shoutOutsError) throw shoutOutsError;
+      if (error) throw error;
 
-      // Fetch recipients and reactions for each shout-out
       const shoutOutsWithData = await Promise.all(
         (shoutOutsData || []).map(async (shoutOut) => {
-          // Fetch recipients
           const { data: recipients } = await supabase
             .from("shout_out_recipients")
-            .select(`
-              recipient:profiles!shout_out_recipients_recipient_id_fkey(full_name, role)
-            `)
+            .select(`recipient:profiles!shout_out_recipients_recipient_id_fkey(full_name, role)`)
             .eq("shout_out_id", shoutOut.id);
 
-          // Fetch all reactions for this shout-out
           const { data: allReactions } = await supabase
             .from("shout_out_reactions")
             .select("reaction_type, user_id")
             .eq("shout_out_id", shoutOut.id);
 
-          // Count reactions by type
           const reactionCounts = {
             like: allReactions?.filter(r => r.reaction_type === 'like').length || 0,
             clap: allReactions?.filter(r => r.reaction_type === 'clap').length || 0,
             star: allReactions?.filter(r => r.reaction_type === 'star').length || 0,
           };
-
-          // Get current user's reactions
-          const userReactions = user
-            ? allReactions?.filter(r => r.user_id === user.id).map(r => r.reaction_type) || []
-            : [];
+          const userReactions = user ? allReactions?.filter(r => r.user_id === user.id).map(r => r.reaction_type) || [] : [];
 
           return {
             ...shoutOut,
             sender: Array.isArray(shoutOut.sender) ? shoutOut.sender[0] : shoutOut.sender,
-            recipients: (recipients || []).map((r: any) => 
-              Array.isArray(r.recipient) ? r.recipient[0] : r.recipient
-            ),
+            recipients: (recipients || []).map((r: any) => Array.isArray(r.recipient) ? r.recipient[0] : r.recipient),
             reactions: reactionCounts,
             userReactions,
           };
         })
       );
-
       setShoutOuts(shoutOutsWithData);
     } catch (error: any) {
-      toast({
-        title: "Error loading shout-outs",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error loading shout-outs", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -144,78 +98,39 @@ const ShoutOuts = () => {
 
   useEffect(() => {
     fetchShoutOuts();
-
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel("shout-outs-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "shout_outs",
-        },
-        () => {
-          fetchShoutOuts();
-        }
-      )
+    const channel = supabase.channel("shout-outs-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "shout_outs" }, () => fetchShoutOuts())
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Filter logic
-  const filteredShoutOuts = shoutOuts.filter((shoutOut) => {
-    // Department filter
-    if (filterDepartment !== "all" && shoutOut.sender.department !== filterDepartment) {
-      return false;
-    }
-
-    // Sender search
-    if (searchSender && !shoutOut.sender.full_name?.toLowerCase().includes(searchSender.toLowerCase())) {
-      return false;
-    }
-
-    // Date filter
+  const filteredShoutOuts = shoutOuts.filter((s) => {
+    if (filterDepartment !== "all" && s.sender.department !== filterDepartment) return false;
+    if (searchSender && !s.sender.full_name?.toLowerCase().includes(searchSender.toLowerCase())) return false;
     if (filterDate !== "all") {
-      const shoutOutDate = new Date(shoutOut.created_at);
+      const d = new Date(s.created_at);
       const now = new Date();
-      
-      if (filterDate === "today") {
-        return shoutOutDate.toDateString() === now.toDateString();
-      } else if (filterDate === "week") {
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        return shoutOutDate >= weekAgo;
-      } else if (filterDate === "month") {
-        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        return shoutOutDate >= monthAgo;
-      }
+      if (filterDate === "today") return d.toDateString() === now.toDateString();
+      if (filterDate === "week") return d >= new Date(now.getTime() - 7 * 86400000);
+      if (filterDate === "month") return d >= new Date(now.getTime() - 30 * 86400000);
     }
-
     return true;
   });
 
-  const resetFilters = () => {
-    setFilterDepartment("all");
-    setFilterDate("all");
-    setSearchSender("");
-  };
+  const resetFilters = () => { setFilterDepartment("all"); setFilterDate("all"); setSearchSender(""); };
 
   return (
     <SidebarProvider>
       <AppSidebar profile={profile} userEmail={userEmail} />
-      <main className="flex-1 overflow-auto bg-gradient-mesh">
-        <div className="container mx-auto p-6 space-y-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+      <main className="flex-1 overflow-auto">
+        <PageTransition className="container mx-auto p-6 space-y-6 max-w-5xl">
+          {/* Header */}
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
               <SidebarTrigger />
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-rainbow bg-clip-text text-transparent">
-                  Shout-outs
-                </h1>
-                <p className="text-muted-foreground mt-1">Celebrate achievements and spread positivity</p>
+                <h1 className="text-3xl font-extrabold text-gradient-rainbow">Shout-outs</h1>
+                <p className="text-sm text-muted-foreground">Celebrate achievements and spread positivity ✨</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -226,33 +141,33 @@ const ShoutOuts = () => {
             </div>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-primary rounded-2xl blur-2xl opacity-20" />
-            <div className="relative bg-card/80 backdrop-blur-xl rounded-2xl p-1 shadow-glow">
-              <ShoutOutForm onSuccess={fetchShoutOuts} />
-            </div>
-          </div>
+          {/* Create Form */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card rounded-2xl p-1 hover-glow"
+          >
+            <ShoutOutForm onSuccess={fetchShoutOuts} />
+          </motion.div>
 
-          <div className="relative bg-card/60 backdrop-blur-lg p-6 rounded-2xl border-2 border-primary/20 shadow-elegant space-y-4">
+          {/* Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="glass-card rounded-2xl p-5 space-y-4"
+          >
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-accent">
-                <Filter className="h-5 w-5 text-white" />
+              <div className="p-2 rounded-xl bg-gradient-accent">
+                <Filter className="h-4 w-4 text-primary-foreground" />
               </div>
-              <h2 className="font-bold text-lg">Filter Your Feed</h2>
+              <h2 className="font-bold">Filter Feed</h2>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Input
-                placeholder="Search by sender..."
-                value={searchSender}
-                onChange={(e) => setSearchSender(e.target.value)}
-                className="border-primary/30 focus:border-primary bg-background/50"
-              />
-
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <Input placeholder="Search by sender..." value={searchSender} onChange={(e) => setSearchSender(e.target.value)}
+                className="rounded-xl border-2 focus:border-primary" />
               <Select value={filterDepartment} onValueChange={setFilterDepartment}>
-                <SelectTrigger className="border-primary/30 focus:border-primary bg-background/50">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
+                <SelectTrigger className="rounded-xl border-2"><SelectValue placeholder="All Departments" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Departments</SelectItem>
                   <SelectItem value="engineering">Engineering</SelectItem>
@@ -263,11 +178,8 @@ const ShoutOuts = () => {
                   <SelectItem value="general">General</SelectItem>
                 </SelectContent>
               </Select>
-
               <Select value={filterDate} onValueChange={setFilterDate}>
-                <SelectTrigger className="border-primary/30 focus:border-primary bg-background/50">
-                  <SelectValue placeholder="All Time" />
-                </SelectTrigger>
+                <SelectTrigger className="rounded-xl border-2"><SelectValue placeholder="All Time" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Time</SelectItem>
                   <SelectItem value="today">Today</SelectItem>
@@ -275,48 +187,54 @@ const ShoutOuts = () => {
                   <SelectItem value="month">This Month</SelectItem>
                 </SelectContent>
               </Select>
-
-              <Button 
-                variant="outline" 
-                onClick={resetFilters}
-                className="border-2 border-secondary/50 hover:bg-gradient-secondary hover:text-white hover:border-secondary"
-              >
-                Reset Filters
+              <Button variant="outline" onClick={resetFilters} className="rounded-xl border-2 gap-2">
+                <RotateCcw className="h-4 w-4" /> Reset
               </Button>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="space-y-6">
+          {/* Feed */}
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                Feed ({filteredShoutOuts.length} shout-outs)
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Feed
+                <span className="text-sm font-normal text-muted-foreground">({filteredShoutOuts.length})</span>
               </h2>
             </div>
-            
+
             {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              <div className="text-center py-16">
+                <div className="inline-block h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
                 <p className="text-muted-foreground mt-4">Loading shout-outs...</p>
               </div>
             ) : filteredShoutOuts.length === 0 ? (
-              <div className="text-center py-12 bg-card/60 backdrop-blur-lg rounded-2xl border-2 border-dashed border-primary/30">
-                <p className="text-muted-foreground text-lg">
-                  No shout-outs found. Be the first to share some recognition! 🎉
-                </p>
-              </div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-16 glass-card rounded-2xl"
+              >
+                <span className="text-5xl mb-4 block">🎉</span>
+                <p className="text-muted-foreground text-lg">No shout-outs found. Be the first!</p>
+              </motion.div>
             ) : (
-              <div className="space-y-6">
-                {filteredShoutOuts.map((shoutOut) => (
-                  <ShoutOutCard 
-                    key={shoutOut.id} 
-                    shoutOut={shoutOut} 
-                    onUpdate={fetchShoutOuts}
-                  />
+              <AnimatePresence mode="popLayout">
+                {filteredShoutOuts.map((shoutOut, i) => (
+                  <motion.div
+                    key={shoutOut.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: i * 0.03 }}
+                    layout
+                  >
+                    <ShoutOutCard shoutOut={shoutOut} onUpdate={fetchShoutOuts} />
+                  </motion.div>
                 ))}
-              </div>
+              </AnimatePresence>
             )}
           </div>
-        </div>
+        </PageTransition>
       </main>
     </SidebarProvider>
   );
