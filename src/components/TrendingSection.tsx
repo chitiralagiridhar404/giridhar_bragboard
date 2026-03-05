@@ -32,7 +32,11 @@ export const TrendingSection = () => {
           return { ...post, reactions_count: reactionsCount || 0, comments_count: commentsCount || 0, engagement_score: (reactionsCount || 0) * 2 + (commentsCount || 0) * 3 };
         })
       );
-      setTrending(postsWithEngagement.sort((a, b) => b.engagement_score - a.engagement_score).slice(0, 5) as any);
+      const normalized = postsWithEngagement.map(p => ({
+        ...p,
+        sender: Array.isArray(p.sender) ? p.sender[0] : p.sender,
+      }));
+      setTrending(normalized.sort((a, b) => b.engagement_score - a.engagement_score).slice(0, 5) as any);
     }
     setLoading(false);
   };
@@ -72,10 +76,10 @@ export const TrendingSection = () => {
                     </div>
                     <Avatar className="h-7 w-7">
                       <AvatarImage src={post.sender.avatar_url} />
-                      <AvatarFallback className="text-xs">{post.sender.full_name[0]}</AvatarFallback>
+                      <AvatarFallback className="text-xs">{(post.sender?.full_name || "U")[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-xs truncate">{post.sender.full_name}</p>
+                      <p className="font-semibold text-xs truncate">{post.sender?.full_name || "Unknown"}</p>
                     </div>
                   </div>
                   <p className="text-xs mb-2 line-clamp-2 text-muted-foreground">{post.content}</p>

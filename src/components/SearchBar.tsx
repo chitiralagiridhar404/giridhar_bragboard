@@ -105,11 +105,11 @@ export const SearchBar = () => {
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={result.sender.avatar_url} />
-                        <AvatarFallback>{result.sender.full_name[0]}</AvatarFallback>
+                        <AvatarImage src={(Array.isArray(result.sender) ? result.sender[0] : result.sender)?.avatar_url} />
+                        <AvatarFallback>{((Array.isArray(result.sender) ? result.sender[0] : result.sender)?.full_name || "U")[0]}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-semibold text-sm">{result.sender.full_name}</p>
+                        <p className="font-semibold text-sm">{(Array.isArray(result.sender) ? result.sender[0] : result.sender)?.full_name || "Unknown"}</p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(result.created_at).toLocaleDateString()}
                         </p>

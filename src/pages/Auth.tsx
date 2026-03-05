@@ -23,6 +23,7 @@ const authSchema = z.object({
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,11 +33,25 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate("/dashboard");
-    };
-    checkUser();
+    // Set up auth listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session) {
+          navigate("/dashboard");
+        }
+        setCheckingAuth(false);
+      }
+    );
+
+    // Then check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/dashboard");
+      }
+      setCheckingAuth(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -54,8 +69,11 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithPassword({
           email: validatedData.email, password: validatedData.password,
         });
-        if (error) toast.error(error.message);
-        else { toast.success("Welcome back! 🎉"); navigate("/dashboard"); }
+        if (error) {
+          toast.error(error.message);
+        } else {
+          toast.success("Welcome back! 🎉");
+        }
       } else {
         const { error } = await supabase.auth.signUp({
           email: validatedData.email, password: validatedData.password,
@@ -64,8 +82,11 @@ const Auth = () => {
             data: { full_name: validatedData.fullName, role: validatedData.role, department: validatedData.department },
           },
         });
-        if (error) toast.error(error.message);
-        else { toast.success("Account created! Please log in."); setIsLogin(true); }
+        if (error) {
+          toast.error(error.message);
+        } else {
+          toast.success("Account created! Welcome aboard 🎉");
+        }
       }
     } catch (error) {
       if (error instanceof z.ZodError) toast.error(error.errors[0].message);
@@ -74,6 +95,14 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-10 w-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4">
@@ -88,7 +117,6 @@ const Auth = () => {
         className="w-full max-w-md relative z-10"
       >
         <Card className="glass-strong rounded-3xl border-primary/20 shadow-elegant overflow-hidden">
-          {/* Decorative top bar */}
           <div className="h-2 bg-gradient-rainbow w-full" />
 
           <CardHeader className="space-y-3 pb-2 pt-8">
@@ -212,7 +240,7 @@ const Auth = () => {
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:text-primary-glow font-semibold transition-colors"
+                className="text-primary hover:underline font-semibold transition-colors"
               >
                 {isLogin ? "Need an account? Sign up →" : "Already have an account? Sign in →"}
               </button>
