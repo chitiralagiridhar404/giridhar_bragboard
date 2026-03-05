@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Mail, Briefcase, MapPin, Calendar } from "lucide-react";
+import { ArrowLeft, Briefcase, MapPin, Calendar } from "lucide-react";
 import { StatsCards } from "@/components/StatsCards";
 import { AchievementBadges } from "@/components/AchievementBadges";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,8 +13,8 @@ import { motion } from "framer-motion";
 import { PageTransition, StaggerContainer, StaggerItem } from "@/components/PageTransition";
 
 interface Profile {
-  id: string; full_name: string; avatar_url?: string; department: string;
-  role: string; bio?: string; user_id: string; created_at?: string;
+  id: string; full_name: string | null; avatar_url?: string | null; department: string;
+  role: string; bio?: string | null; user_id: string; created_at?: string;
 }
 
 export default function UserProfile() {
@@ -34,9 +34,18 @@ export default function UserProfile() {
     if (data) setProfile(data);
   };
 
+  const normalizeSender = (s: any) => {
+    const sender = Array.isArray(s.sender) ? s.sender[0] : s.sender;
+    return {
+      ...s,
+      sender: sender || { full_name: null, role: '', department: '', avatar_url: null },
+      recipients: [],
+    };
+  };
+
   const fetchShoutOuts = async () => {
     const { data: sent } = await supabase.from('shout_outs')
-      .select(`*, sender:profiles!shout_outs_sender_id_fkey(full_name, avatar_url, department)`)
+      .select(`*, sender:profiles!shout_outs_sender_id_fkey(full_name, avatar_url, department, role)`)
       .eq('sender_id', userId).order('created_at', { ascending: false });
 
     const { data: recipients } = await supabase.from('shout_out_recipients').select('shout_out_id').eq('recipient_id', userId);
@@ -44,12 +53,12 @@ export default function UserProfile() {
       const ids = recipients.map(r => r.shout_out_id);
       if (ids.length > 0) {
         const { data: received } = await supabase.from('shout_outs')
-          .select(`*, sender:profiles!shout_outs_sender_id_fkey(full_name, avatar_url, department)`)
+          .select(`*, sender:profiles!shout_outs_sender_id_fkey(full_name, avatar_url, department, role)`)
           .in('id', ids).order('created_at', { ascending: false });
-        setReceivedShoutOuts(received || []);
+        setReceivedShoutOuts((received || []).map(normalizeSender));
       }
     }
-    setSentShoutOuts(sent || []);
+    setSentShoutOuts((sent || []).map(normalizeSender));
     setLoading(false);
   };
 
@@ -60,6 +69,8 @@ export default function UserProfile() {
       </div>
     );
   }
+
+  const displayName = profile.full_name || "Unknown User";
 
   return (
     <PageTransition className="min-h-screen">
@@ -81,15 +92,15 @@ export default function UserProfile() {
             <motion.div whileHover={{ scale: 1.05 }} className="relative">
               <div className="absolute inset-0 bg-gradient-primary rounded-full blur-xl opacity-40" />
               <Avatar className="h-36 w-36 border-4 border-card shadow-elegant relative">
-                <AvatarImage src={profile.avatar_url} />
+                <AvatarImage src={profile.avatar_url || undefined} />
                 <AvatarFallback className="bg-gradient-primary text-primary-foreground text-5xl font-bold">
-                  {profile.full_name[0]}
+                  {displayName[0]?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
             </motion.div>
 
             <div className="flex-1 text-center md:text-left space-y-3">
-              <h1 className="text-4xl font-extrabold text-gradient-primary">{profile.full_name}</h1>
+              <h1 className="text-4xl font-extrabold text-gradient-primary">{displayName}</h1>
               <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                 <Badge className="bg-gradient-primary text-primary-foreground border-0 gap-1 px-3 py-1">
                   <Briefcase className="h-3 w-3" /> {profile.role}
@@ -114,7 +125,7 @@ export default function UserProfile() {
         <StatsCards userId={userId} />
 
         {/* Shout-outs Tabs */}
-        <Tabs defaultValue="sent" className="w-full">
+        <Tabs defaultValue="sent" className="w-full mt-6">
           <TabsList className="grid w-full grid-cols-2 rounded-xl h-12 glass-card">
             <TabsTrigger value="sent" className="rounded-lg data-[state=active]:bg-gradient-primary data-[state=active]:text-primary-foreground font-semibold">
               Sent ({sentShoutOuts.length})
