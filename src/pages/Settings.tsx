@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { User } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
 import { PageTransition } from "@/components/PageTransition";
-import { ArrowLeft, Save, User as UserIcon, Briefcase, Building, FileText } from "lucide-react";
+import { ArrowLeft, Save, User as UserIcon, Briefcase, Building, FileText, Lock } from "lucide-react";
 
 interface Profile {
   id: string; user_id: string; full_name: string | null; role: string;
