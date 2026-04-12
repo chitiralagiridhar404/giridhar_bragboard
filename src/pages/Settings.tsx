@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { User } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
 import { PageTransition } from "@/components/PageTransition";
-import { ArrowLeft, Save, User as UserIcon, Briefcase, Building, FileText } from "lucide-react";
+import { ArrowLeft, Save, User as UserIcon, Briefcase, Building, FileText, Lock } from "lucide-react";
 
 interface Profile {
   id: string; user_id: string; full_name: string | null; role: string;
@@ -159,6 +159,14 @@ const Settings = () => {
                 <Button variant="outline" onClick={() => navigate("/dashboard")} disabled={saving}
                   className="rounded-xl border-2 h-12">
                   Cancel
+                </Button>
+              </div>
+
+              <div className="border-t border-border pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-foreground mb-3">Security</h3>
+                <Button variant="outline" onClick={() => navigate("/forgot-password")}
+                  className="rounded-xl border-2 h-12 gap-2 w-full">
+                  <Lock className="h-4 w-4" /> Change Password
                 </Button>
               </div>
             </CardContent>

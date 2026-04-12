@@ -236,14 +236,23 @@ const Auth = () => {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-2">
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:underline font-semibold transition-colors"
+                className="text-primary hover:underline font-semibold transition-colors block mx-auto"
               >
                 {isLogin ? "Need an account? Sign up →" : "Already have an account? Sign in →"}
               </button>
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-muted-foreground hover:text-primary text-sm hover:underline transition-colors block mx-auto"
+                >
+                  Forgot your password?
+                </button>
+              )}
             </div>
           </CardContent>
         </Card>
