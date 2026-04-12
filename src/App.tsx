@@ -10,6 +10,8 @@ import Settings from "./pages/Settings";
 import ShoutOuts from "./pages/ShoutOuts";
 import Admin from "./pages/Admin";
 import UserProfile from "./pages/UserProfile";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,7 +32,8 @@ const App = () => (
           <Route path="/goals" element={<Dashboard />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/profile/:userId" element={<UserProfile />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
