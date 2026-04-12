@@ -161,6 +161,14 @@ const Settings = () => {
                   Cancel
                 </Button>
               </div>
+
+              <div className="border-t border-border pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-foreground mb-3">Security</h3>
+                <Button variant="outline" onClick={() => navigate("/forgot-password")}
+                  className="rounded-xl border-2 h-12 gap-2 w-full">
+                  <Lock className="h-4 w-4" /> Change Password
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
