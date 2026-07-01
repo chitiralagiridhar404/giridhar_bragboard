@@ -97,6 +97,15 @@ const Settings = () => {
               <CardDescription>Customize your BragBoard identity</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pb-8">
+              {user && profile && (
+                <AvatarUpload
+                  userId={user.id}
+                  currentUrl={profile.avatar_url}
+                  fallback={(formData.full_name || user.email || "U")[0].toUpperCase()}
+                  onUploaded={(url) => setProfile({ ...profile, avatar_url: url })}
+                />
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="full_name" className="flex items-center gap-2">
                   <UserIcon className="h-4 w-4 text-primary" /> Full Name
