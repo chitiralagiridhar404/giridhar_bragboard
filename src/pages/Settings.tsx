@@ -11,7 +11,9 @@ import { toast } from "sonner";
 import { User } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
 import { PageTransition } from "@/components/PageTransition";
-import { ArrowLeft, Save, User as UserIcon, Briefcase, Building, FileText, Lock } from "lucide-react";
+import { ArrowLeft, Save, User as UserIcon, Briefcase, Building, FileText, Lock, Bell, Palette, Shield } from "lucide-react";
+import { AvatarUpload } from "@/components/AvatarUpload";
+import { Switch } from "@/components/ui/switch";
 
 interface Profile {
   id: string; user_id: string; full_name: string | null; role: string;
@@ -95,6 +97,15 @@ const Settings = () => {
               <CardDescription>Customize your BragBoard identity</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pb-8">
+              {user && profile && (
+                <AvatarUpload
+                  userId={user.id}
+                  currentUrl={profile.avatar_url}
+                  fallback={(formData.full_name || user.email || "U")[0].toUpperCase()}
+                  onUploaded={(url) => setProfile({ ...profile, avatar_url: url })}
+                />
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="full_name" className="flex items-center gap-2">
                   <UserIcon className="h-4 w-4 text-primary" /> Full Name
@@ -162,8 +173,17 @@ const Settings = () => {
                 </Button>
               </div>
 
+              <div className="border-t border-border pt-6 mt-6 space-y-4">
+                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Bell className="h-4 w-4 text-primary" /> Preferences
+                </h3>
+                <PreferenceToggles />
+              </div>
+
               <div className="border-t border-border pt-6 mt-6">
-                <h3 className="text-lg font-semibold text-foreground mb-3">Security</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" /> Security
+                </h3>
                 <Button variant="outline" onClick={() => navigate("/forgot-password")}
                   className="rounded-xl border-2 h-12 gap-2 w-full">
                   <Lock className="h-4 w-4" /> Change Password
@@ -176,5 +196,47 @@ const Settings = () => {
     </PageTransition>
   );
 };
+
+function PreferenceToggles() {
+  const readBool = (k: string, d: boolean) => {
+    const v = localStorage.getItem(k);
+    return v === null ? d : v === "true";
+  };
+  const [emailNotif, setEmailNotif] = useState(() => readBool("pref_email_notif", true));
+  const [pushNotif, setPushNotif] = useState(() => readBool("pref_push_notif", true));
+  const [weeklyDigest, setWeeklyDigest] = useState(() => readBool("pref_weekly_digest", false));
+  const [compactMode, setCompactMode] = useState(() => readBool("pref_compact_mode", false));
+
+  const bind = (setter: (v: boolean) => void, key: string) => (v: boolean) => {
+    setter(v);
+    localStorage.setItem(key, String(v));
+    toast.success("Preference saved");
+  };
+
+  const rows: [string, string, boolean, (v: boolean) => void, string][] = [
+    ["Email notifications", "Get shout-out alerts by email", emailNotif, bind(setEmailNotif, "pref_email_notif"), "📧"],
+    ["Push notifications", "Real-time in-app alerts", pushNotif, bind(setPushNotif, "pref_push_notif"), "🔔"],
+    ["Weekly digest", "Summary of your week every Monday", weeklyDigest, bind(setWeeklyDigest, "pref_weekly_digest"), "📅"],
+    ["Compact feed", "Denser layout on the feed", compactMode, bind(setCompactMode, "pref_compact_mode"), "🗂️"],
+  ];
+
+  return (
+    <div className="space-y-2">
+      {rows.map(([label, desc, val, onChange, emoji]) => (
+        <div key={label} className="flex items-center justify-between p-3 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">{emoji}</span>
+            <div>
+              <p className="font-medium text-sm">{label}</p>
+              <p className="text-xs text-muted-foreground">{desc}</p>
+            </div>
+          </div>
+          <Switch checked={val} onCheckedChange={onChange} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 export default Settings;
